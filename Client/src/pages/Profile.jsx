@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
+import { Link } from "react-router-dom"; // ✅ import Link
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -10,13 +11,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Set JWT if stored in localStorage
         const token = localStorage.getItem("token");
-        const headers = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
+        const headers = { headers: { Authorization: `Bearer ${token}` } };
 
         const [profileRes, postsRes] = await Promise.all([
           axiosInstance.get("/users/profile", headers),
@@ -36,8 +32,10 @@ const Profile = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="text-center p-10 text-gray-600">Loading profile...</div>;
-  if (error) return <div className="text-center p-10 text-red-500">{error}</div>;
+  if (loading)
+    return <div className="text-center p-10 text-gray-600">Loading profile...</div>;
+  if (error)
+    return <div className="text-center p-10 text-red-500">{error}</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -54,11 +52,13 @@ const Profile = () => {
         ) : (
           <ul className="space-y-2">
             {posts.map((post) => (
-              <li
-                key={post._id}
-                className="p-4 border rounded hover:bg-gray-100 transition cursor-pointer"
-              >
-                📝 {post.title}
+              <li key={post._id}>
+                <Link
+                  to={`/post/${post._id}`}
+                  className="block p-4 border rounded hover:bg-gray-100 transition cursor-pointer text-gray-800"
+                >
+                  📝 {post.title}
+                </Link>
               </li>
             ))}
           </ul>

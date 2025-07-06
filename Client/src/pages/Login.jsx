@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../redux/authSlice";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,13 +23,18 @@ const Login = () => {
 
     try {
       const res = await axiosInstance.post("/auth/login", formData);
-      console.log("✅ Login success:", res.data);
+      const { token, user } = res.data;
 
-      // Save token to localStorage (or Redux)
-      localStorage.setItem("token", res.data.token);
+      // Save token in localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user)); // Save user info for rehydration
 
-      // Redirect to home/dashboard
-      navigate("/");
+
+      // Dispatch user to Redux
+      dispatch(loginSuccess(user));
+
+      // Redirect to dashboard
+      navigate("/dashboard");
     } catch (err) {
       console.error("❌ Login failed:", err);
       setError(err.response?.data?.message || "Login failed");

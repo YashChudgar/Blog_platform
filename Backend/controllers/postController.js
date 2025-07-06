@@ -32,7 +32,7 @@ export const getAllPosts = async (req, res) => {
 // Get Single Post by ID
 export const getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate("authorId", "name");
+    const post = await Post.findById(req.params.id).populate("authorId", "name _id");
     if (!post) return res.status(404).json({ message: "Post not found" });
     res.status(200).json(post);
   } catch (error) {
