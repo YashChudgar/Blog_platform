@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) =>
@@ -25,15 +24,10 @@ const Login = () => {
       const res = await axiosInstance.post("/auth/login", formData);
       const { token, user } = res.data;
 
-      // Save token in localStorage
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user)); // Save user info for rehydration
+      localStorage.setItem("user", JSON.stringify(user));
 
-
-      // Dispatch user to Redux
       dispatch(loginSuccess(user));
-
-      // Redirect to dashboard
       navigate("/dashboard");
     } catch (err) {
       console.error("❌ Login failed:", err);
@@ -42,44 +36,67 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
-      <div className="bg-gray-100 p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-blue-600">
-          Login to Your Account
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-200 px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-indigo-700 mb-6">Welcome Back 👋</h2>
 
         {error && (
           <div className="text-red-500 text-sm mb-4 text-center">{error}</div>
         )}
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="w-full p-3 rounded border focus:outline-blue-400"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="text-sm text-gray-700">Email</label>
+            <input
+              type="email"
+              name="email"
+              className="w-full mt-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-indigo-300"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full p-3 rounded border focus:outline-blue-400"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div className="relative">
+            <label className="text-sm text-gray-700">Password</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              className="w-full mt-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-indigo-300 pr-10"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <div
+              className="absolute top-[39px] right-3 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center text-sm">
+            <Link to="/forgot-password" className="text-indigo-600 hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition duration-200"
           >
             Login
           </button>
         </form>
+
+        <div className="text-center mt-6 text-sm text-gray-600">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-indigo-600 hover:underline font-medium">
+            Register
+          </Link>
+        </div>
       </div>
     </div>
   );

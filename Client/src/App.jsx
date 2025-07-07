@@ -17,6 +17,13 @@ import CreatePost from "./pages/CreatePost";
 import ViewPost from "./pages/ViewPost";
 import Profile from "./pages/Profile";
 import EditPost from "./pages/EditPost";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import TagPosts from "./pages/TagPosts";
+import ForgotPassword from "./pages/ForgotPassword";
+
+
 
 // Components
 import Navbar from "./components/Navbar";
@@ -52,6 +59,13 @@ useEffect(() => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/post/:id" element={<ViewPost />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/tag/:tag" element={<TagPosts />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+
 
           {/* Protected Routes */}
           <Route

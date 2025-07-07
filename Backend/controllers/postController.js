@@ -87,3 +87,17 @@ export const getMyPosts = async (req, res) => {
     res.status(500).json({ message: "Failed to load your posts" });
   }
 };
+
+
+export const getPostsByTag = async (req, res) => {
+  try {
+    const tag = req.params.tag;
+    const posts = await Post.find({
+      tags: { $regex: new RegExp(tag, "i") }, // case-insensitive partial match
+    }).populate("authorId", "name");
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching posts by tag:", error);
+    res.status(500).json({ message: "Failed to fetch posts" });
+  }
+};

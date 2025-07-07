@@ -1,33 +1,57 @@
-// src/pages/ViewPost.jsx
+// ViewPost.jsx (Updated with Comments + Likes)
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { useSelector } from "react-redux";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, Heart, HeartOff, MessageCircle } from "lucide-react";
 
 const ViewPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
 
-  const user = useSelector((state) => state.auth.user);
+  const fetchPost = async () => {
+    try {
+      const res = await axiosInstance.get(`/posts/${id}`);
+      setPost(res.data);
+    } catch (err) {
+      setError("Failed to load post.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const res = await axiosInstance.get(`/comments/${id}`);
+      setComments(res.data);
+    } catch (err) {
+      console.error("Failed to load comments");
+    }
+  };
+
+  const fetchLikes = async () => {
+    try {
+      const res = await axiosInstance.get(`/likes/${id}`);
+      setLikesCount(res.data.total);
+      setLiked(res.data.likedByCurrentUser);
+    } catch (err) {
+      console.error("Failed to fetch like status");
+    }
+  };
 
   useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const res = await axiosInstance.get(`/posts/${id}`);
-        console.log("✅ Post data:", res.data);
-        setPost(res.data);
-      } catch (err) {
-        setError("Failed to load post.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPost();
+    fetchComments();
+    fetchLikes();
   }, [id]);
 
   const handleDelete = async () => {
@@ -36,8 +60,38 @@ const ViewPost = () => {
       await axiosInstance.delete(`/posts/${id}`);
       navigate("/dashboard");
     } catch (err) {
-      console.error("Delete failed:", err);
       alert("Failed to delete post.");
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    try {
+      const res = await axiosInstance.post(`/comments/${id}`, { content: newComment });
+      setComments([res.data, ...comments]);
+      setNewComment("");
+    } catch (err) {
+      console.error("Add comment failed", err);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await axiosInstance.delete(`/comments/${commentId}`);
+      setComments(comments.filter((c) => c._id !== commentId));
+    } catch (err) {
+      console.error("Delete comment failed", err);
+    }
+  };
+
+  const handleToggleLike = async () => {
+    try {
+      await axiosInstance.post(`/likes/${id}`);
+      setLiked(!liked);
+      setLikesCount((prev) => prev + (liked ? -1 : 1));
+    } catch (err) {
+      console.error("Toggle like failed", err);
     }
   };
 
@@ -45,25 +99,18 @@ const ViewPost = () => {
   if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
   if (!post) return <p className="text-center mt-10">Post not found.</p>;
 
-const isAuthor =
-  user &&
-  (user.id === post.authorId?._id || user._id === post.authorId?._id);
+  const isAuthor = user && (user._id === post.authorId?._id);
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md">
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-gray-800">{post.title}</h1>
         {isAuthor && (
           <div className="flex gap-4">
-            <Link
-              to={`/edit/${post._id}`}
-              className="flex items-center gap-1 text-blue-600 hover:underline"
-            >
-              <Pencil size={18} /> Edit Post
+            <Link to={`/edit/${post._id}`} className="text-blue-600 hover:underline flex items-center gap-1">
+              <Pencil size={18} /> Edit
             </Link>
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-1 text-red-600 hover:underline"
-            >
+            <button onClick={handleDelete} className="text-red-600 hover:underline flex items-center gap-1">
               <Trash size={18} /> Delete
             </button>
           </div>
@@ -71,30 +118,70 @@ const isAuthor =
       </div>
 
       <p className="text-gray-500 mb-4">
-        By {post.authorId?.name || "Unknown"} •{" "}
-        {new Date(post.createdAt).toLocaleDateString()}
+        By {post.authorId?.name || "Unknown"} • {new Date(post.createdAt).toLocaleDateString()}
       </p>
 
-      <div
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: post.content }}
-      />
+      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
 
+      <div className="flex items-center gap-4 mt-6">
+        <button onClick={handleToggleLike} className="flex items-center gap-1 text-pink-600">
+          {liked ? <Heart fill="currentColor" /> : <HeartOff />} {likesCount}
+        </button>
+        <span className="flex items-center gap-1 text-gray-600">
+          <MessageCircle size={16} /> {comments.length} Comments
+        </span>
+      </div>
+
+      {/* Tags */}
       {post.tags?.length > 0 && (
-        <div className="mt-4">
+        <div className="mt-6">
           <h4 className="font-semibold text-gray-700">Tags:</h4>
-          <div className="flex flex-wrap gap-2 mt-1">
-            {post.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-sm"
-              >
+          <div className="flex flex-wrap gap-2 mt-2">
+            {post.tags.map((tag, i) => (
+              <span key={i} className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-sm">
                 #{tag}
               </span>
             ))}
           </div>
         </div>
       )}
+
+      {/* Comments */}
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Comments</h3>
+        {user && (
+          <form onSubmit={handleAddComment} className="flex gap-2 mb-6">
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="flex-1 p-2 border rounded focus:outline-none"
+              placeholder="Write a comment..."
+              required
+            />
+            <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Post</button>
+          </form>
+        )}
+
+        <div className="space-y-4">
+          {comments.map((c) => (
+            <div key={c._id} className="bg-gray-50 p-3 rounded border">
+              <div className="flex justify-between items-center">
+                <p className="font-medium text-gray-800">{c.userId?.name || "Anonymous"}</p>
+                {user?._id === c.userId?._id && (
+                  <button
+                    onClick={() => handleDeleteComment(c._id)}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+              <p className="text-gray-700 text-sm mt-1">{c.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

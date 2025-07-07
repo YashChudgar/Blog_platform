@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -57,3 +58,40 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Login failed", error: error.message });
   }
 };
+
+// Check if email exists (initial check)
+export const checkEmail = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "Email not found" });
+    return res.status(200).json({ message: "Email exists" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Reset password logic
+export const resetPassword = async (req, res) => {
+  const { email, newPassword, confirmPassword } = req.body;
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    user.password = hashedPassword;
+
+    await user.save();
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Error updating password", error: err.message });
+  }
+};
+
+

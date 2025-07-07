@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axiosInstance from "../api/axiosInstance"; // assumes you have this set up
-import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const Register = () => {
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) =>
@@ -20,12 +22,7 @@ const Register = () => {
 
     try {
       const res = await axiosInstance.post("/auth/register", formData);
-      console.log("✅ Registered:", res.data);
-
-      // Optionally save token to localStorage or Redux
       localStorage.setItem("token", res.data.token);
-
-      // Redirect to login or dashboard
       navigate("/login");
     } catch (err) {
       console.error("❌ Registration failed:", err);
@@ -34,54 +31,80 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
-      <div className="bg-gray-100 p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-green-600">
-          Create a New Account
+    <div className="flex justify-center items-center min-h-screen bg-white px-4">
+      <div className="bg-gray-100 p-8 rounded-2xl shadow-xl w-full max-w-md border border-blue-100">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
+          Create Your Account
         </h2>
 
         {error && (
           <div className="text-red-500 text-sm mb-4 text-center">{error}</div>
         )}
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            className="w-full p-3 rounded border focus:outline-green-400"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="Your Name"
+              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="w-full p-3 rounded border focus:outline-green-400"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full p-3 rounded border focus:outline-green-400"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Create a password"
+                className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
 
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+            className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-semibold hover:bg-blue-700 transition"
           >
             Register
           </button>
         </form>
+
+        <p className="mt-6 text-sm text-center text-gray-600">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-600 font-semibold hover:underline">
+            Login here
+          </Link>
+        </p>
       </div>
     </div>
   );
