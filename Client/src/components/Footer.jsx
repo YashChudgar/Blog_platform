@@ -1,8 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { PenTool } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const navigate = useNavigate();
+  const handleCategoryClick = (cat) => {
+  navigate(`/tag/${encodeURIComponent(cat)}`);
+};
+
   return (
 <footer className="bg-indigo-50 border-t border-indigo-100 text-gray-700 pt-12 pb-6 px-4 mt-20 sm:mt-24 shadow-inner">
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -30,7 +36,7 @@ const Footer = () => {
         </div>
 
         {/* Features */}
-        <div>
+      <div>
           <h4 className="font-semibold text-gray-800 mb-3">Features</h4>
           <ul className="space-y-2 text-sm">
             <li>Distraction-Free Writing</li>
@@ -44,11 +50,18 @@ const Footer = () => {
         <div>
           <h4 className="font-semibold text-gray-800 mb-3">Popular Categories</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="hover:text-indigo-600">Technology</Link></li>
-            <li><Link to="/" className="hover:text-indigo-600">Lifestyle</Link></li>
-            <li><Link to="/" className="hover:text-indigo-600">Writing Tips</Link></li>
-            <li><Link to="/" className="hover:text-indigo-600">Education</Link></li>
-          </ul>
+  {["Technology", "Lifestyle", "Writing Tips", "Education"].map((cat, i) => (
+    <li key={i}>
+      <button
+        onClick={() => handleCategoryClick(cat)}
+        className="hover:text-indigo-600 text-left w-full"
+      >
+        {cat}
+      </button>
+    </li>
+  ))}
+</ul>
+
         </div>
       </div>
 

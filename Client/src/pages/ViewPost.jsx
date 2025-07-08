@@ -1,4 +1,3 @@
-// ViewPost.jsx (Updated with Comments + Likes)
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
@@ -78,7 +77,11 @@ const ViewPost = () => {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await axiosInstance.delete(`/comments/${commentId}`);
+      await axiosInstance.delete(`/comments/${commentId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setComments(comments.filter((c) => c._id !== commentId));
     } catch (err) {
       console.error("Delete comment failed", err);
@@ -99,7 +102,19 @@ const ViewPost = () => {
   if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
   if (!post) return <p className="text-center mt-10">Post not found.</p>;
 
-  const isAuthor = user && (user._id === post.authorId?._id);
+  const isAuthor = user && (user.id === post.authorId?._id);
+
+  const userComments = user
+    ? comments.filter(
+        (c) => String(c.userId?._id || c.userId) === String(user.id)
+      )
+    : [];
+
+  const otherComments = user
+    ? comments.filter(
+        (c) => String(c.userId?._id || c.userId) !== String(user.id)
+      )
+    : comments;
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md">
@@ -146,9 +161,10 @@ const ViewPost = () => {
         </div>
       )}
 
-      {/* Comments */}
+      {/* Comments Section */}
       <div className="mt-10">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Comments</h3>
+
         {user && (
           <form onSubmit={handleAddComment} className="flex gap-2 mb-6">
             <input
@@ -163,24 +179,43 @@ const ViewPost = () => {
           </form>
         )}
 
-        <div className="space-y-4">
-          {comments.map((c) => (
-            <div key={c._id} className="bg-gray-50 p-3 rounded border">
-              <div className="flex justify-between items-center">
-                <p className="font-medium text-gray-800">{c.userId?.name || "Anonymous"}</p>
-                {user?._id === c.userId?._id && (
-                  <button
-                    onClick={() => handleDeleteComment(c._id)}
-                    className="text-xs text-red-500 hover:underline"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              <p className="text-gray-700 text-sm mt-1">{c.content}</p>
+        {/* User Comments */}
+        {user && userComments.length > 0 && (
+          <div className="mb-8">
+            <h4 className="text-md font-semibold text-indigo-700 mb-2">Your Comment(s)</h4>
+            <div className="space-y-3">
+              {userComments.map((c) => (
+                <div key={c._id} className="bg-indigo-50 p-3 rounded border border-indigo-200">
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium text-gray-800">You</p>
+                    <button
+                      onClick={() => handleDeleteComment(c._id)}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <p className="text-gray-700 text-sm mt-1">{c.content}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* All Other Comments */}
+        <h4 className="text-md font-semibold text-gray-700 mb-2">All Comments</h4>
+        {otherComments.length === 0 ? (
+          <p className="text-gray-500 text-sm">No comments yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {otherComments.map((c) => (
+              <div key={c._id} className="bg-gray-50 p-3 rounded border">
+                <p className="font-medium text-gray-800">{c.userId?.name || "Anonymous"}</p>
+                <p className="text-gray-700 text-sm mt-1">{c.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

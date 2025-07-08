@@ -4,11 +4,38 @@ import { motion } from "framer-motion";
 import { PlusCircle, FileText, Clock, Trash2, Eye, Pencil } from "lucide-react";
 import axiosInstance from "../api/axiosInstance";
 
+
 const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(null);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [commentedPosts, setCommentedPosts] = useState([]);
+
+  const fetchLikedPosts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axiosInstance.get("/posts/liked", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLikedPosts(res.data);
+    } catch (err) {
+      console.error("❌ Failed to load liked posts:", err);
+    }
+  };
+
+  const fetchCommentedPosts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axiosInstance.get("/posts/commented", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCommentedPosts(res.data);
+    } catch (err) {
+      console.error("❌ Failed to load commented posts:", err);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -27,6 +54,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchPosts();
+    fetchLikedPosts();
+    fetchCommentedPosts();
   }, []);
 
   const handleDelete = async (postId) => {
@@ -152,9 +181,80 @@ const Dashboard = () => {
             ))}
           </div>
         )}
+
+        {/* Liked Posts */}
+        <h2 className="text-2xl font-bold mt-12 mb-6 flex items-center gap-2">
+          ❤️ Liked Posts
+        </h2>
+        {likedPosts.length === 0 ? (
+          <p className="text-gray-500">You haven’t liked any posts yet.</p>
+        ) : (
+          <div className="space-y-6">
+            {likedPosts.map((post, index) => (
+              <motion.div
+                key={post._id}
+                className="bg-white shadow-sm p-6 rounded-xl hover:shadow-md transition"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">{post.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {post.content.slice(0, 100)}...
+                    </p>
+                  </div>
+                  <Link
+                    to={`/post/${post._id}`}
+                    className="text-indigo-600 text-sm hover:underline"
+                  >
+                    View
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Commented Posts */}
+        <h2 className="text-2xl font-bold mt-12 mb-6 flex items-center gap-2">
+          💬 Commented Posts
+        </h2>
+        {commentedPosts.length === 0 ? (
+          <p className="text-gray-500">You haven’t commented on any posts yet.</p>
+        ) : (
+          <div className="space-y-6">
+            {commentedPosts.map((post, index) => (
+              <motion.div
+                key={post._id}
+                className="bg-white shadow-sm p-6 rounded-xl hover:shadow-md transition"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">{post.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {post.content.slice(0, 100)}...
+                    </p>
+                  </div>
+                  <Link
+                    to={`/post/${post._id}`}
+                    className="text-indigo-600 text-sm hover:underline"
+                  >
+                    View
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   );
 };
 
 export default Dashboard;
+

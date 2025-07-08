@@ -9,6 +9,8 @@ import {
   getPostsByTag,
 } from "../controllers/postController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { getLikedPosts } from "../controllers/likeController.js";
+import { getCommentedPosts } from "../controllers/commentController.js";
 
 const router = express.Router();
 
@@ -20,6 +22,10 @@ router.get("/mine", protect, getMyPosts);
 
 //post routes
 router.get("/tag/:tag", getPostsByTag);
+
+//get liked and commented posts
+router.get("/liked", protect, getLikedPosts);
+router.get("/commented", protect, getCommentedPosts);
 
 // Individual post routes
 router

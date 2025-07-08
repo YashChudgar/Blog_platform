@@ -1,5 +1,6 @@
 // controllers/commentController.js
 import Comment from "../models/Comment.js";
+import Post from "../models/Post.js";
 
 // Add a comment to a post
 export const addComment = async (req, res) => {
@@ -47,10 +48,26 @@ export const getCommentsByPost = async (req, res) => {
 
     const comments = await Comment.find({ postId })
       .populate("userId", "name") // 👈 populate only the name of the user
-      .sort({ createdAt: -1 }); // newest first
-
+      .sort({ createdAt: -1 }) // newest first
+      .lean();
     res.status(200).json(comments);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch comments", error: error.message });
+  }
+};
+
+export const getCommentedPosts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const comments = await Comment.find({ userId }).select("postId");
+    const postIds = [...new Set(comments.map((c) => c.postId.toString()))]; // Unique IDs
+
+    const posts = await Post.find({ _id: { $in: postIds } }).populate("authorId", "name");
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching commented posts:", error);
+    res.status(500).json({ message: "Failed to fetch commented posts" });
   }
 };

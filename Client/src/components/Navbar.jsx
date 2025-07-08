@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice";
+import { useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -12,6 +13,7 @@ const Navbar = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Scroll behavior for showing/hiding navbar
   useEffect(() => {
@@ -28,11 +30,16 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/login");
-  };
-
+ const handleLogout = () => {
+  dispatch(logout());
+  setMenuOpen(false);
+  setTimeout(() => {
+    navigate("/");
+  }, 50); // slight delay to ensure UI re-renders
+};
+useEffect(() => {
+  setMenuOpen(false); // close menu on route change
+}, [location]);
   const NavLinks = () => (
     <>
       {isAuthenticated ? (
