@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -23,23 +26,34 @@ const Register = () => {
     try {
       const res = await axiosInstance.post("/auth/register", formData);
       localStorage.setItem("token", res.data.token);
-      navigate("/login");
+      toast.success("Registration successful! Redirecting to login...");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      console.error("❌ Registration failed:", err);
-      setError(err.response?.data?.message || "Registration failed");
+      const msg = err.response?.data?.message || "Registration failed";
+      setError(msg);
+      toast.error(msg);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white px-4">
-      <div className="bg-gray-100 p-8 rounded-2xl shadow-xl w-full max-w-md border border-blue-100">
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
-          Create Your Account
-        </h2>
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-tr from-indigo-100 via-blue-100 to-purple-100 bg-[url('/bg-pattern.svg')] bg-cover bg-center px-4">
+      <ToastContainer position="top-center" autoClose={2500} />
 
-        {error && (
-          <div className="text-red-500 text-sm mb-4 text-center">{error}</div>
-        )}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-indigo-200 backdrop-blur-md bg-opacity-90"
+      >
+        {/* 🔥 Subtle animated logo/header */}
+        <motion.h2
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 120 }}
+          className="text-3xl font-extrabold text-center text-indigo-700 mb-6"
+        >
+          🚀 Create Your Account
+        </motion.h2>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
@@ -48,7 +62,7 @@ const Register = () => {
               type="text"
               name="name"
               placeholder="Your Name"
-              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               value={formData.name}
               onChange={handleChange}
               required
@@ -61,7 +75,7 @@ const Register = () => {
               type="email"
               name="email"
               placeholder="you@example.com"
-              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               value={formData.email}
               onChange={handleChange}
               required
@@ -75,7 +89,7 @@ const Register = () => {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Create a password"
-                className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10"
+                className="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 pr-10"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -86,26 +100,27 @@ const Register = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          <button
+          <motion.button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-semibold hover:bg-blue-700 transition"
+            whileTap={{ scale: 0.95 }}
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition-all shadow-md"
           >
             Register
-          </button>
+          </motion.button>
         </form>
 
         <p className="mt-6 text-sm text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 font-semibold hover:underline">
+          <Link to="/login" className="text-indigo-600 font-semibold hover:underline">
             Login here
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };

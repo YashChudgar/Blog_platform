@@ -22,13 +22,18 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import TagPosts from "./pages/TagPosts";
 import ForgotPassword from "./pages/ForgotPassword";
-
+import SearchResults from "./pages/SearchResults";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserList from "./pages/UserList";
+import UserDetails from "./pages/UserDetails";
+import PostList from "./pages/PostList";
 
 
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function AppContent() {
   
@@ -64,7 +69,8 @@ useEffect(() => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/tag/:tag" element={<TagPosts />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-
+          <Route path="/search" element={<SearchResults />} />
+<Route path="*" element={<p className="text-center mt-10 text-red-500">Page Not Found</p>} />
 
 
           {/* Protected Routes */}
@@ -100,6 +106,18 @@ useEffect(() => {
               </PrivateRoute>
             }
           />
+         <Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      <AdminDashboard />
+    </AdminRoute>
+  }
+>
+  <Route path="users" element={<UserList />} />
+  <Route path="users/:id" element={<UserDetails />} />
+  <Route path="posts" element={<PostList />} />
+</Route>
         </Routes>
       </div>
 

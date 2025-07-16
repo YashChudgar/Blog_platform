@@ -4,6 +4,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
 import { Eye, EyeOff } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,15 +14,12 @@ const Login = () => {
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
     try {
       const res = await axiosInstance.post("/auth/login", formData);
       const { token, user } = res.data;
@@ -28,21 +28,32 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(user));
 
       dispatch(loginSuccess(user));
-      navigate("/dashboard");
+      toast.success("Login successful!");
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (err) {
-      console.error("❌ Login failed:", err);
-      setError(err.response?.data?.message || "Login failed");
+      const msg = err.response?.data?.message || "Login failed";
+      toast.error(msg);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-200 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-indigo-700 mb-6">Welcome Back 👋</h2>
+    <div className="min-h-screen flex items-center justify-center bg-[url('/bg-login.svg')] bg-cover bg-center px-4">
+      <ToastContainer position="top-center" autoClose={2500} />
 
-        {error && (
-          <div className="text-red-500 text-sm mb-4 text-center">{error}</div>
-        )}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-indigo-200 backdrop-blur-md bg-opacity-90"
+      >
+        <motion.h2
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 120 }}
+          className="text-3xl font-bold text-center text-indigo-700 mb-6"
+        >
+          Welcome Back 👋
+        </motion.h2>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
@@ -50,7 +61,7 @@ const Login = () => {
             <input
               type="email"
               name="email"
-              className="w-full mt-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-indigo-300"
+              className="w-full mt-1 p-3 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
@@ -63,7 +74,7 @@ const Login = () => {
             <input
               type={showPassword ? "text" : "password"}
               name="password"
-              className="w-full mt-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-indigo-300 pr-10"
+              className="w-full mt-1 p-3 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 pr-10"
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
@@ -77,27 +88,28 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-end text-sm">
             <Link to="/forgot-password" className="text-indigo-600 hover:underline">
               Forgot Password?
             </Link>
           </div>
 
-          <button
+          <motion.button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition duration-200"
+            whileTap={{ scale: 0.97 }}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-all shadow-md"
           >
             Login
-          </button>
+          </motion.button>
         </form>
 
         <div className="text-center mt-6 text-sm text-gray-600">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-indigo-600 hover:underline font-medium">
+          Don’t have an account?{" "}
+          <Link to="/register" className="text-indigo-600 font-semibold hover:underline">
             Register
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

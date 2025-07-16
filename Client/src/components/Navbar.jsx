@@ -1,47 +1,63 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice";
-import { useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [lastScrollY, setLastScrollY] = useState(0);
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll behavior for showing/hiding navbar
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  // Scroll behavior for navbar hide/show
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY < lastScrollY) {
-        setShowNavbar(true); // scrolling up
-      } else {
-        setShowNavbar(false); // scrolling down
-      }
+      setShowNavbar(window.scrollY < lastScrollY);
       setLastScrollY(window.scrollY);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
- const handleLogout = () => {
-  dispatch(logout());
-  setMenuOpen(false);
-  setTimeout(() => {
-    navigate("/");
-  }, 50); // slight delay to ensure UI re-renders
-};
-useEffect(() => {
-  setMenuOpen(false); // close menu on route change
-}, [location]);
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setMenuOpen(false);
+      setSearchQuery("");
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setMenuOpen(false);
+    setTimeout(() => navigate("/"), 50);
+  };
+
   const NavLinks = () => (
     <>
+      {isAuthenticated && user?.role === "admin" && (
+        <Link
+          to="/admin/users"
+          className="px-4 py-2 rounded-lg font-medium text-indigo-600 hover:underline transition duration-300"
+          onClick={() => setMenuOpen(false)}
+        >
+          Admin Panel
+        </Link>
+      )}
       {isAuthenticated ? (
         <>
           <Link
@@ -59,10 +75,7 @@ useEffect(() => {
             Profile
           </Link>
           <button
-            onClick={() => {
-              setMenuOpen(false);
-              handleLogout();
-            }}
+            onClick={handleLogout}
             className="px-4 py-2 rounded-lg font-medium border border-red-600 text-red-600 hover:bg-red-50 transition duration-300"
           >
             Logout
@@ -103,7 +116,22 @@ useEffect(() => {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex space-x-4">
+        <div className="hidden md:flex space-x-4 items-center">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search blogs..."
+              className="border border-gray-300 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition w-52 pr-8"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-indigo-600 hover:text-indigo-800"
+            >
+              🔍
+            </button>
+          </form>
           <NavLinks />
         </div>
 
@@ -129,6 +157,15 @@ useEffect(() => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex flex-col items-start px-6 py-4 space-y-3">
+              <form onSubmit={handleSearchSubmit} className="w-full">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search blogs..."
+                  className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                />
+              </form>
               <NavLinks />
             </div>
           </motion.div>

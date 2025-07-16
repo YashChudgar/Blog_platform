@@ -7,6 +7,7 @@ import {
   deletePost,
   getMyPosts,
   getPostsByTag,
+  searchPosts,
 } from "../controllers/postController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { getLikedPosts } from "../controllers/likeController.js";
@@ -26,6 +27,9 @@ router.get("/tag/:tag", getPostsByTag);
 //get liked and commented posts
 router.get("/liked", protect, getLikedPosts);
 router.get("/commented", protect, getCommentedPosts);
+
+//serach posts
+router.get("/search", searchPosts);
 
 // Individual post routes
 router

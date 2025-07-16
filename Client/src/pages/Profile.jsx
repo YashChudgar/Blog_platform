@@ -183,15 +183,24 @@ const Profile = () => {
         ) : (
           <ul className="space-y-3">
             {posts.map((post) => (
-              <li key={post._id}>
-                <Link
-                  to={`/post/${post._id}`}
-                  className="block p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
-                >
-                  📝 {post.title}
-                </Link>
-              </li>
-            ))}
+  <li key={post._id} className="flex items-center justify-between">
+    <Link
+      to={`/post/${post._id}`}
+      className="block w-full p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
+    >
+      📝 {post.title}
+    </Link>
+    <span
+      className={`ml-4 text-sm font-medium px-3 py-1 rounded-full ${
+        post.status === "published"
+          ? "bg-green-100 text-green-700"
+          : "bg-yellow-100 text-yellow-700"
+      }`}
+    >
+      {post.status}
+    </span>
+  </li>
+))}
           </ul>
         )}
       </div>
